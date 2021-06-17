@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <div class="row">
+    {% include "followers.html" %}
+    <div class="col-md-9">
+      <!-- Пост -->  
+      {% include "post_item.html" %}
+      {% include 'comments.html' %}
+    </div>
+  </div>
+{% endblock %}

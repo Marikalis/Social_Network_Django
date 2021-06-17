@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Последние обновления на сайте{% endblock %}
+
+{% block header %}
+  Последние обновления на сайте
+{% endblock %}
+
+{% block content %}
+
+  {% load cache %}
+  {% cache 20 index_page with page %}
+    {% for post in page %}
+      {% include "post_item.html" %}
+    {% endfor %}
+  {% endcache %}
+
+  {% include "paginator.html" %}
+
+{% endblock %} 

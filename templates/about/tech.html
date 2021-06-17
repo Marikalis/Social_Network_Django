@@ -1,0 +1,47 @@
+<!-- templates/about/author.html -->
+{% extends "base.html" %}
+{% block title %}Технологии{% endblock %}
+{% block content %}
+{% load user_filters %}
+{% load static %}
+  <main role="main" class="container">
+    <div class="row">
+      <!-- Левый вспомогательный блок -->
+      <div class="col-md-3 mb-3 mt-1">
+        <div class="card">
+          <div class="card-body">
+            <ul class="list-group list-group-flush">
+              <li class="list-group-item">
+                <div class="h3">
+                  Технологии
+                </div> 
+              </li>
+              <li class="list-group-item">
+                <p>
+                  <img src="{% static 'workspace.jpg' %}" alt="Work space photo">
+                </p>
+                <div class="h6 text-muted">
+                  На самом деле это другой ноутбук
+                </div>
+              </li>
+            </ul>                                               
+          </div>                    
+        </div>                
+      </div>
+      <!-- Тело страницы -->
+      <div class="col-md-9">
+        <div class="card-body">                    
+          <div class="card-text">
+            <p>
+              Для создания этого проекта используется Фреймворк Django. 
+              Благодаря ему код хранится в определённых папочках приложений, 
+              все структурировано, красиво и удобно. В этом Фреймворке есть большое 
+              количество библиотек, которые cодержат удобные функции и методы для работы.
+              Для хранения кода ипользуется система конроля версий Git.
+            </p>
+          </div>                    
+        </div>                
+      </div>            
+    </div>        
+  </main>
+{% endblock %}

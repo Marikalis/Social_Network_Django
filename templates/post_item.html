@@ -1,0 +1,46 @@
+<!-- Начало блока с отдельным постом -->
+<div class="card mb-3 mt-1 shadow-sm">
+  <div class="card-body">
+    <p class="card-text">
+        {% load thumbnail %}
+        {% thumbnail post.image "960x339" crop="center" upscale=True as im %}
+          <img class="card-img" src="{{ im.url }}">
+        {% endthumbnail %}
+      <!-- Ссылка на страницу автора в атрибуте href; username автора в тексте ссылки -->
+      <div>
+        <a href="{% url 'profile' post.author.username %}">
+          <strong>@{{ post.author.username }}</strong>
+        </a>
+        {% if post.group %}
+          | Группа: 
+          <a href="{% url 'group_posts' post.group.slug %}">
+            <strong>{{ post.group.title }}</strong>
+          </a>
+        {% endif %}
+      </div>
+      <!-- Текст поста -->
+      {{ post.text|linebreaksbr }}
+    </p>
+    <div class="d-flex justify-content-between align-items-center">
+      <div class="btn-group ">
+        <!-- Ссылка на страницу записи в атрибуте href-->
+        <a class="btn btn-sm text-muted" href="{% url 'post' post.author.username post.id %}" role="button">
+          {% if user.is_authenticated %}
+            Добавить комментарий
+          {% else %}
+            Открыть пост
+          {% endif %}
+        </a>
+        <!-- Ссылка на редактирование, показывается только автору записи -->
+        <a class="btn btn-sm text-muted" href="{% url 'post_edit' post.author.username post.id %}" role="button">
+          {% if post.author.id == user.id %}
+            Редактировать
+          {% else %}
+          {% endif %}
+        </a>
+      </div>
+      <!-- Дата публикации  -->
+      <small class="text-muted">{{ post.pub_date|date:"d M Y" }}</small>
+    </div>
+  </div>
+</div>

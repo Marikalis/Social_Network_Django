@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <div class="row">
+    {% include "followers.html" %}
+    <div class="col-md-9">
+      {% for post in page %}
+        {% include "post_item.html" %}
+      {% endfor %}
+      <!-- Остальные посты -->
+      <!-- Здесь постраничная навигация паджинатора -->
+      {% include "paginator.html" %}
+    </div>
+  </div>
+{% endblock %}
