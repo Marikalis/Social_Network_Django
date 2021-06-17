@@ -107,3 +107,21 @@ def add_comment(request, username, post_id):
         comment.post = post
         comment.save()
     return redirect('post', username=username, post_id=post_id)
+
+@login_required
+def follow_index(request):
+    # информация о текущем пользователе доступна в переменной request.user
+    # ...
+    return render(request, "follow.html", {...})
+
+@login_required
+def profile_follow(request, username):
+    author = get_object_or_404(User, username=username)
+    pass
+
+
+@login_required
+def profile_unfollow(request, username):
+    author = get_object_or_404(User, username=username)
+
+    pass

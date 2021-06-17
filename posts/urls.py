@@ -31,16 +31,17 @@ urlpatterns = [
         '',
         views.index,
         name='index'),
-    path(
-        "follow/",
-        views.follow_index,
-        name="follow_index"),
-    path(
-        "<str:username>/follow/",
-        views.profile_follow,
-        name="profile_follow"), 
-    path(
-        "<str:username>/unfollow/",
-        views.profile_unfollow,
-        name="profile_unfollow"),
 ]
+#     path(
+#         "follow/",
+#         views.follow_index,
+#         name="follow_index"),
+#     path(
+#         "<str:username>/follow/",
+#         views.profile_follow,
+#         name="profile_follow"), 
+#     path(
+#         "<str:username>/unfollow/",
+#         views.profile_unfollow,
+#         name="profile_unfollow"),
+# ]
