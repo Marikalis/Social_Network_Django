@@ -3,7 +3,7 @@ from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, redirect, render
 
 from .forms import CommentForm, PostForm
-from .models import User, Group, Post
+from .models import User, Follow, Group, Post
 from .settings import PAGE_SIZE
 
 
@@ -108,6 +108,7 @@ def add_comment(request, username, post_id):
         comment.save()
     return redirect('post', username=username, post_id=post_id)
 
+
 @login_required
 def follow_index(request):
     username = request.user # информация о текущем пользователе доступна в переменной request.user
@@ -117,19 +118,23 @@ def follow_index(request):
     page = paginator.get_page(page_number)
     return render(
         request,
-        "follow.html",{
-            'page': page,
-            'username': username}
-    )
+        "follow.html",{'page': page})
+
 
 @login_required
 def profile_follow(request, username):
     author = get_object_or_404(User, username=username)
-    pass
+    subscription = Follow.objects.filter(
+        username = request.user,
+        author = author)
+    if not subscription:
+        Follow.objects.filter(
+        username = request.user,
+        author = author)
+    return redirect('profile', username)
 
 
 @login_required
 def profile_unfollow(request, username):
-    author = get_object_or_404(User, username=username)
-
-    pass
+    author = get_object_or_404(Follow, User, username=username).delete()
+    return redirect('profile', username)
