@@ -59,14 +59,27 @@ def profile(request, username):
 
 
 def post_view(request, username, post_id):
-    post = get_object_or_404(Post, author__username=username, id=post_id)
+    post = get_object_or_404(
+        Post,
+        author__username=username,
+        id=post_id
+    )
     comments = post.comments.all()
     form = CommentForm(request.POST or None)
+    following = Follow.objects.filter(
+        author=post.author.id,
+        user=request.user.id
+    )
+    followers = post.author.following.count()
+    follow = post.author.follower.count()
     context = {
         'post': post,
         'author': post.author,
         'form': form,
-        'comments': comments
+        'comments': comments,
+        'following': following,
+        'followers': followers,
+        'follow': follow
     }
     return render(request, 'post.html', context)
 
