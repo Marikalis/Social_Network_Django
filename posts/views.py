@@ -110,9 +110,17 @@ def add_comment(request, username, post_id):
 
 @login_required
 def follow_index(request):
-    # информация о текущем пользователе доступна в переменной request.user
-    # ...
-    return render(request, "follow.html", {...})
+    username = request.user # информация о текущем пользователе доступна в переменной request.user
+    post = Post.objects.filter(author__following__user=username)
+    paginator = Paginator(post, PAGE_SIZE)
+    page_number = request.GET.get('page')
+    page = paginator.get_page(page_number)
+    return render(
+        request,
+        "follow.html",{
+            'page': page,
+            'username': username}
+    )
 
 @login_required
 def profile_follow(request, username):
