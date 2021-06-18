@@ -127,15 +127,17 @@ def profile_follow(request, username):
     author = get_object_or_404(User, username=username)
     subscription = Follow.objects.filter(
         username = request.user,
-        author = author)
-    if not subscription:
-        Follow.objects.filter(
+        author = author).exists()
+    if author != request.user and subscription is False:
+        Follow.objects.create(
         username = request.user,
         author = author)
-    return redirect('profile', username)
+    return redirect('profile', username=username)
 
 
 @login_required
 def profile_unfollow(request, username):
-    author = get_object_or_404(Follow, User, username=username).delete()
-    return redirect('profile', username)
+    get_object_or_404(Follow,
+    username = request.user,
+    author__username=username).delete()
+    return redirect('profile', username=username)
