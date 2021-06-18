@@ -47,9 +47,14 @@ def profile(request, username):
     paginator = Paginator(posts, PAGE_SIZE)
     page_number = request.GET.get('page')
     page = paginator.get_page(page_number)
+    is_following = Follow.objects.filter(
+        user=request.user,
+        author=author
+    ).exists()
     return render(request, 'profile.html', {
         'author': author,
-        'page': page
+        'page': page,
+        'is_following': is_following
     })
 
 
@@ -111,14 +116,14 @@ def add_comment(request, username, post_id):
 
 @login_required
 def follow_index(request):
-    username = request.user # информация о текущем пользователе доступна в переменной request.user
+    username = request.user
     post = Post.objects.filter(author__following__user=username)
     paginator = Paginator(post, PAGE_SIZE)
     page_number = request.GET.get('page')
     page = paginator.get_page(page_number)
     return render(
         request,
-        "follow.html",{'page': page}
+        "follow.html", {'page': page}
     )
 
 
@@ -126,18 +131,22 @@ def follow_index(request):
 def profile_follow(request, username):
     author = get_object_or_404(User, username=username)
     subscription = Follow.objects.filter(
-        username = request.user,
-        author = author).exists()
+        user=request.user,
+        author=author
+    ).exists()
     if author != request.user and subscription is False:
         Follow.objects.create(
-        username = request.user,
-        author = author)
+            user=request.user,
+            author=author
+        )
     return redirect('profile', username=username)
 
 
 @login_required
 def profile_unfollow(request, username):
-    get_object_or_404(Follow,
-    username = request.user,
-    author__username=username).delete()
+    get_object_or_404(
+        Follow,
+        user=request.user,
+        author__username=username
+    ).delete()
     return redirect('profile', username=username)

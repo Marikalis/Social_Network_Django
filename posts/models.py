@@ -92,6 +92,7 @@ class Comment(models.Model):
     class Meta:
         ordering = ['-created']
 
+
 class Follow(models.Model):
     user = models.ForeignKey(
         User,
@@ -103,6 +104,7 @@ class Follow(models.Model):
         on_delete=models.CASCADE,
         related_name='following'
     )
+
     class Meta:
         constraints = [
             models.CheckConstraint(
