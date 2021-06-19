@@ -9,6 +9,7 @@ from posts.models import Follow, Group, Post, User
 from posts.settings import PAGE_SIZE
 
 INDEX = reverse('index')
+FOLLOW_INDEX = reverse('follow_index')
 NEW_POST = reverse('new_post')
 DESCRIPTION = 'Тестовое описание'
 USERNAME = 'Test_lisa'
@@ -29,6 +30,10 @@ GROUP_WITHOUT_POSTS = reverse(
 )
 FOLLOW = reverse(
     'profile_follow',
+    kwargs={'username': ANOTHER_USERNAME}
+)
+UNFOLLOW = reverse(
+    'profile_unfollow',
     kwargs={'username': ANOTHER_USERNAME}
 )
 
@@ -225,8 +230,10 @@ class FollowViewsTest(TestCase):
     def setUpClass(cls):
         super().setUpClass()
         cls.user = User.objects.create_user(username='testuser')
-        Post.objects.create(
-            author=cls.user
+        cls.another_user = User.objects.create_user(username=ANOTHER_USERNAME)
+        cls.post = Post.objects.create(
+            text='Тестовый пост',
+            author=cls.another_user
         )
 
     def setUp(self):
@@ -235,13 +242,32 @@ class FollowViewsTest(TestCase):
         self.guest_client = Client()
 
     def test_authorized_client_follow(self):
-        another_user = User.objects.create_user(username=ANOTHER_USERNAME)
         self.authorized_client.post(
-            FOLLOW,
-            follow=True
+            FOLLOW
         )
         self.assertTrue(
             Follow.objects.filter(
                 user=self.user,
-                author=another_user).exists()
+                author=self.another_user).exists()
         )
+
+    def test_authorized_client_unfollow(self):
+        self.authorized_client.post(
+            UNFOLLOW
+        )
+        self.assertFalse(
+            Follow.objects.filter(
+                user=self.user,
+                author=self.another_user).exists()
+        )
+
+    def test_new_post_is_shown_to_followers(self):
+        self.authorized_client.post(
+            FOLLOW
+        )
+        response = self.authorized_client.get(FOLLOW_INDEX)
+        self.assertIn(self.post, response.context['page'])
+
+    def test_new_post_doesnt_shown_to_follower(self):
+        response = self.authorized_client.get(FOLLOW_INDEX)
+        self.assertNotIn(self.post, response.context['page'])
