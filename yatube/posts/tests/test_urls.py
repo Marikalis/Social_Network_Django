@@ -46,6 +46,12 @@ class URLTests(TestCase):
                 'username': cls.post.author.username,
                 'post_id': cls.post.id}
         )
+        cls.ADD_COMMENT = reverse(
+            'add_comment',
+            kwargs={
+                'username': cls.post.author.username,
+                'post_id': cls.post.id}
+        )
 
     def setUp(self):
         self.guest_client = Client()
@@ -96,6 +102,16 @@ class URLTests(TestCase):
                 self.guest_client,
                 self.POST_EDIT,
                 AUTH + '?next=' + self.POST_EDIT
+            ],
+            [
+                self.another_authorized_client,
+                self.ADD_COMMENT,
+                self.VIEW_POST
+            ],
+            [
+                self.guest_client,
+                self.ADD_COMMENT,
+                AUTH + '?next=' + self.ADD_COMMENT
             ],
         ]
         for client, url, url_redirect in templates_url_names:
