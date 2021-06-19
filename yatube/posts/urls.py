@@ -4,17 +4,17 @@ from . import views
 
 urlpatterns = [
     path(
-        "follow/",
+        'follow/',
         views.follow_index,
-        name="follow_index"),
+        name='follow_index'),
     path(
-        "<str:username>/follow/",
+        '<str:username>/follow/',
         views.profile_follow,
-        name="profile_follow"), 
+        name='profile_follow'),
     path(
-        "<str:username>/unfollow/",
+        '<str:username>/unfollow/',
         views.profile_unfollow,
-        name="profile_unfollow"),
+        name='profile_unfollow'),
     path(
         'new/',
         views.new_post,

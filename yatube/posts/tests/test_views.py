@@ -5,13 +5,14 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 from django.test import Client, TestCase
 
-from posts.models import Group, Post, User
+from posts.models import Follow, Group, Post, User
 from posts.settings import PAGE_SIZE
 
 INDEX = reverse('index')
 NEW_POST = reverse('new_post')
 DESCRIPTION = 'Тестовое описание'
 USERNAME = 'Test_lisa'
+ANOTHER_USERNAME = 'Mysinka'
 GROUP_WITHOUT_POST_SLAG = 'test-slug-empty'
 GROUP_WITH_POST_SLAG = 'test-slug'
 PROFILE = reverse(
@@ -25,6 +26,10 @@ GROUP_WITH_POSTS = reverse(
 GROUP_WITHOUT_POSTS = reverse(
     'group_posts',
     kwargs={'slug': GROUP_WITHOUT_POST_SLAG}
+)
+FOLLOW = reverse(
+    'profile_follow',
+    kwargs={'username': ANOTHER_USERNAME}
 )
 
 
@@ -212,4 +217,31 @@ class CacheViewsTest(TestCase):
         self.assertEqual(
             len(first_response.content),
             len(response_after_post_add.content)
+        )
+
+
+class FollowViewsTest(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.user = User.objects.create_user(username='testuser')
+        Post.objects.create(
+            author=cls.user
+        )
+
+    def setUp(self):
+        self.authorized_client = Client()
+        self.authorized_client.force_login(self.user)
+        self.guest_client = Client()
+
+    def test_authorized_client_follow(self):
+        another_user = User.objects.create_user(username=ANOTHER_USERNAME)
+        self.authorized_client.post(
+            FOLLOW,
+            follow=True
+        )
+        self.assertTrue(
+            Follow.objects.filter(
+                user=self.user,
+                author=another_user).exists()
         )

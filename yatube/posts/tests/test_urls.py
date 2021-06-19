@@ -100,9 +100,9 @@ class URLTests(TestCase):
         ]
         for client, url, url_redirect in templates_url_names:
             with self.subTest(url=url):
-                user_page = client.get(url)
+                response = client.get(url)
                 self.assertRedirects(
-                    user_page,
+                    response,
                     url_redirect
                 )
 

@@ -32,14 +32,13 @@
             Отписаться
           </a>
         {% else %}
-        {% if author.id != user.id %}
-          <a
-            class="btn btn-lg btn-primary"
-            href="{% url 'profile_follow' author.username %}" role="button">
-            Подписаться
-          </a>
-        {% else %}
-        {% endif %}
+          {% if author.id != user.id %}
+            <a
+              class="btn btn-lg btn-primary"
+              href="{% url 'profile_follow' author.username %}" role="button">
+              Подписаться
+            </a>
+          {% endif %}
         {% endif %}
       </li>
     </ul>
