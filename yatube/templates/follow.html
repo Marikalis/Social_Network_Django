@@ -7,7 +7,7 @@
 
 {% block content %}
 
-  {% include "menu.html" with index=True %}
+  {% include "menu.html" with follow=True %}
 
   {% load cache %}
   {% cache 20 index_page with page %}

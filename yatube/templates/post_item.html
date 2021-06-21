@@ -11,7 +11,7 @@
         <a href="{% url 'profile' post.author.username %}">
           <strong>@{{ post.author.username }}</strong>
         </a>
-        {% if post.group %}
+        {% if post.group and not hide_group %}
           | Группа: 
           <a href="{% url 'group_posts' post.group.slug %}">
             <strong>{{ post.group.title }}</strong>

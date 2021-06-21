@@ -12,7 +12,7 @@
   </p>
 
   {% for post in page %}
-    {% include "post_item.html" %}
+    {% include "post_item.html" with hide_group=True %}
   {% endfor %}
 
   {% include "paginator.html" %}
