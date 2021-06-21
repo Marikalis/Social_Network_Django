@@ -5,6 +5,7 @@ from posts.models import Group, Post, User
 
 INDEX = reverse('index')
 NEW_POST = reverse('new_post')
+FOLLOW_INDEX = reverse('follow_index')
 AUTH = reverse('login')
 FAKE_PAGE = '/fake/page'
 USERNAME = 'testuser'
@@ -57,6 +58,14 @@ class URLTests(TestCase):
                 'username': cls.post.author.username,
                 'post_id': cls.post.id}
         )
+        cls.FOLLOW = reverse(
+            'profile_follow',
+            kwargs={'username': cls.user.username}
+        )
+        cls.UNFOLLOW = reverse(
+            'profile_unfollow',
+            kwargs={'username': cls.user.username}
+        )
 
     def test_pages_codes(self):
         """Страницы доступны любому пользователю."""
@@ -66,13 +75,21 @@ class URLTests(TestCase):
         url_names = [
             [self.authorized_client, NEW_POST, CODE_SUCCESS],
             [self.authorized_client, self.POST_EDIT, CODE_SUCCESS],
+            [self.authorized_client, self.ADD_COMMENT, CODE_REDIRECT],
+            [self.another_authorized_client, self.FOLLOW, CODE_REDIRECT],
+            [self.another_authorized_client, self.UNFOLLOW, CODE_REDIRECT],
+            [self.authorized_client, FOLLOW_INDEX, CODE_SUCCESS],
             [self.another_authorized_client, self.POST_EDIT, CODE_REDIRECT],
             [self.guest_client, INDEX, CODE_SUCCESS],
+            [self.guest_client, FOLLOW_INDEX, CODE_REDIRECT],
+            [self.guest_client, self.UNFOLLOW, CODE_REDIRECT],
             [self.guest_client, NEW_POST, CODE_REDIRECT],
             [self.guest_client, self.POST_EDIT, CODE_REDIRECT],
             [self.guest_client, GROUP_POSTS, CODE_SUCCESS],
             [self.guest_client, PROFILE, CODE_SUCCESS],
             [self.guest_client, self.VIEW_POST, CODE_SUCCESS],
+            [self.guest_client, self.ADD_COMMENT, CODE_REDIRECT],
+            [self.guest_client, self.FOLLOW, CODE_REDIRECT],
             [self.guest_client, FAKE_PAGE, CODE_NOT_FOUND]
         ]
         for client, url, code in url_names:
@@ -112,6 +129,27 @@ class URLTests(TestCase):
                 self.ADD_COMMENT,
                 f'{AUTH}?next={self.ADD_COMMENT}'
             ],
+            [
+                self.guest_client,
+                self.FOLLOW,
+                f'{AUTH}?next={self.FOLLOW}'
+            ],
+            [
+                self.another_authorized_client,
+                self.FOLLOW,
+                PROFILE
+            ],
+            [
+                self.guest_client,
+                self.UNFOLLOW,
+                f'{AUTH}?next={self.UNFOLLOW}'
+            ],
+            [
+                self.another_authorized_client,
+                self.UNFOLLOW,
+                PROFILE
+            ],
+
         ]
         for client, url, url_redirect in templates_url_names:
             with self.subTest(url=url):

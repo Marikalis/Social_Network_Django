@@ -71,7 +71,7 @@ class PostFormTests(TestCase):
             follow=True
         )
         self.assertRedirects(response, INDEX)
-        posts_after = set(Post.objects.all())
+        posts_after = set(response.context['page'])
         list_diff = posts_before ^ posts_after
         self.assertEqual(len(list_diff), 1)
         new_post = list_diff.pop()
@@ -83,9 +83,17 @@ class PostFormTests(TestCase):
     def test_post_edit(self):
         """При редактировании поста изменяется запись в базе данных."""
         text_after_edit = 'Тестовый пост после редактирования'
+        
+        another_uploaded_file = SimpleUploadedFile(
+            name='another_small.gif',
+            content=SMALL_GIF,
+            content_type='image/gif'
+        )
+
         form_data = {
             'text': text_after_edit,
-            'group': self.group_other.id
+            'group': self.group_other.id,
+            'image': another_uploaded_file
         }
         response = self.authorized_client.post(
             self.EDIT_POST,
@@ -97,6 +105,10 @@ class PostFormTests(TestCase):
         self.assertEqual(post_after_edit.text, text_after_edit)
         self.assertEqual(post_after_edit.group, self.group_other)
         self.assertEqual(post_after_edit.author, self.post.author)
+        self.assertEqual(
+            post_after_edit.image,
+            f'posts/{another_uploaded_file.name}'
+        )
 
     def test_new_post_page_show_correct_context(self):
         """Шаблон new_post сформирован с правильным контекстом."""
