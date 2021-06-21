@@ -25,6 +25,11 @@ class URLTests(TestCase):
         super().setUpClass()
         cls.some_user = User.objects.create_user(username='someuser')
         cls.user = User.objects.create_user(username=USERNAME)
+        cls.guest_client = Client()
+        cls.authorized_client = Client()
+        cls.authorized_client.force_login(cls.user)
+        cls.another_authorized_client = Client()
+        cls.another_authorized_client.force_login(cls.some_user)
         cls.group = Group.objects.create(
             title='Тестовое название',
             description='Тестовое описание',
@@ -52,13 +57,6 @@ class URLTests(TestCase):
                 'username': cls.post.author.username,
                 'post_id': cls.post.id}
         )
-
-    def setUp(self):
-        self.guest_client = Client()
-        self.authorized_client = Client()
-        self.authorized_client.force_login(self.user)
-        self.another_authorized_client = Client()
-        self.another_authorized_client.force_login(self.some_user)
 
     def test_pages_codes(self):
         """Страницы доступны любому пользователю."""
@@ -96,12 +94,13 @@ class URLTests(TestCase):
             [
                 self.guest_client,
                 NEW_POST,
-                AUTH + '?next=' + NEW_POST
+                f'{AUTH}?next={NEW_POST}'
+
             ],
             [
                 self.guest_client,
                 self.POST_EDIT,
-                AUTH + '?next=' + self.POST_EDIT
+                f'{AUTH}?next={self.POST_EDIT}'
             ],
             [
                 self.another_authorized_client,
@@ -111,7 +110,7 @@ class URLTests(TestCase):
             [
                 self.guest_client,
                 self.ADD_COMMENT,
-                AUTH + '?next=' + self.ADD_COMMENT
+                f'{AUTH}?next={self.ADD_COMMENT}'
             ],
         ]
         for client, url, url_redirect in templates_url_names:
@@ -134,8 +133,7 @@ class URLTests(TestCase):
         }
         for url, template in templates_url_names.items():
             with self.subTest(url=url):
-                response = self.authorized_client.get(url)
                 self.assertTemplateUsed(
-                    response,
+                    self.authorized_client.get(url),
                     template
                 )

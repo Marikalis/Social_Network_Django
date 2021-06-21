@@ -6,7 +6,7 @@ from django.urls import reverse
 from django.test import Client, TestCase
 
 from posts.models import Follow, Group, Post, User
-from posts.settings import PAGE_SIZE
+from posts.settings import PAGE_SIZE, SMALL_GIF
 
 INDEX = reverse('index')
 FOLLOW_INDEX = reverse('follow_index')
@@ -53,17 +53,12 @@ class PagesTests(TestCase):
             slug=GROUP_WITHOUT_POST_SLAG
         )
         cls.user = User.objects.create_user(username=USERNAME)
-        small_gif = (
-            b'\x47\x49\x46\x38\x39\x61\x02\x00'
-            b'\x01\x00\x80\x00\x00\x00\x00\x00'
-            b'\xFF\xFF\xFF\x21\xF9\x04\x00\x00'
-            b'\x00\x00\x00\x2C\x00\x00\x00\x00'
-            b'\x02\x00\x01\x00\x00\x02\x02\x0C'
-            b'\x0A\x00\x3B'
-        )
+        cls.authorized_client = Client()
+        cls.authorized_client.force_login(cls.user)
+        cls.guest_client = Client()
         cls.uploaded_file = SimpleUploadedFile(
             name='small.gif',
-            content=small_gif,
+            content=SMALL_GIF,
             content_type='image/gif'
         )
         cls.post = Post.objects.create(
@@ -92,17 +87,14 @@ class PagesTests(TestCase):
         shutil.rmtree(settings.MEDIA_ROOT, ignore_errors=True)
         super().tearDownClass()
 
-    def setUp(self):
-        self.authorized_client = Client()
-        self.authorized_client.force_login(self.user)
-        self.guest_client = Client()
-
     def test_posts_correct_context(self):
         """Шаблоны сформированы с правильным контекстом."""
         urls = [
             INDEX,
             GROUP_WITH_POSTS,
             PROFILE,
+            # FOLLOW,
+            # self.VIEW_POST
         ]
         for url in urls:
             with self.subTest(url=url):
@@ -137,10 +129,9 @@ class PagesTests(TestCase):
             GROUP_WITH_POSTS
         )
         group = response.context['group']
-        expected_group = self.group_with_post
-        self.assertEqual(group.title, expected_group.title)
-        self.assertEqual(group.slug, expected_group.slug)
-        self.assertEqual(group.description, expected_group.description)
+        self.assertEqual(group.title, self.group_with_post.title)
+        self.assertEqual(group.slug, self.group_with_post.slug)
+        self.assertEqual(group.description, self.group_with_post.description)
 
     def test_author_correct_context(self):
         """Словарь context, для страницы отдельного поста
@@ -152,8 +143,7 @@ class PagesTests(TestCase):
         for url in urls:
             with self.subTest(url=url):
                 author = self.authorized_client.get(url).context['author']
-                expected_author = self.user
-                self.assertEqual(author, expected_author)
+                self.assertEqual(author, self.user)
 
     def test_new_post_with_group_doesnt_shown_on_other_group(self):
         response = self.authorized_client.get(
@@ -171,15 +161,13 @@ class PaginatorViewsTest(TestCase):
     def setUpClass(cls):
         super().setUpClass()
         user = User.objects.create_user(username='testuser')
+        cls.guest_client = Client()
         for index in range(ITEMS_COUNT):
             note = f"запись номер {index} "
             Post.objects.create(
                 text=note,
                 author=user
             )
-
-    def setUp(self):
-        self.guest_client = Client()
 
     def test_first_page_content(self):
         response = self.client.get(INDEX)
@@ -231,18 +219,16 @@ class FollowViewsTest(TestCase):
         super().setUpClass()
         cls.user = User.objects.create_user(username='testuser')
         cls.another_user = User.objects.create_user(username=ANOTHER_USERNAME)
+        cls.authorized_client = Client()
+        cls.authorized_client.force_login(cls.user)
+        cls.guest_client = Client()
         cls.post = Post.objects.create(
             text='Тестовый пост',
             author=cls.another_user
         )
 
-    def setUp(self):
-        self.authorized_client = Client()
-        self.authorized_client.force_login(self.user)
-        self.guest_client = Client()
-
     def test_authorized_client_follow(self):
-        self.authorized_client.post(
+        self.authorized_client.get(
             FOLLOW
         )
         self.assertTrue(
@@ -252,7 +238,7 @@ class FollowViewsTest(TestCase):
         )
 
     def test_authorized_client_unfollow(self):
-        self.authorized_client.post(
+        self.authorized_client.get(
             UNFOLLOW
         )
         self.assertFalse(

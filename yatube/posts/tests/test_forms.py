@@ -9,6 +9,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 
 from posts.models import Group, Post, User
+from posts.settings import SMALL_GIF
 
 INDEX = reverse('index')
 NEW_POST = reverse('new_post')
@@ -19,33 +20,37 @@ class PostFormTests(TestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        # Создаем временную папку для медиа-файлов;
-        # на момент теста медиа папка будет переопределена
         settings.MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
-
-    def setUp(self):
-        self.user = User.objects.create_user(username='MarieL')
-        self.authorized_client = Client()
-        self.authorized_client.force_login(self.user)
-        self.post = Post.objects.create(
+        cls.user = User.objects.create_user(username='MarieL')
+        cls.authorized_client = Client()
+        cls.authorized_client.force_login(cls.user)
+        cls.post = Post.objects.create(
             text=POST_TEXT,
-            author=self.user,
+            author=cls.user,
         )
-        self.group = Group.objects.create(
+        cls.group = Group.objects.create(
             title='Название',
             description='Описание',
             slug='test-slug'
         )
-        self.group_other = Group.objects.create(
+        cls.group_other = Group.objects.create(
             title='Название другой группы',
             description='Описание другой группы',
             slug='test-other-slug'
         )
-        self.EDIT_POST = reverse('post_edit', args=[
-            self.post.author.username, self.post.id])
-
-        self.POST = reverse('post', args=[
-            self.post.author.username, self.post.id])
+        cls.post = Post.objects.create(
+            text=POST_TEXT,
+            author=cls.user,
+        )
+        cls.uploaded_file = SimpleUploadedFile(
+            name='small.gif',
+            content=SMALL_GIF,
+            content_type='image/gif'
+        )
+        cls.EDIT_POST = reverse('post_edit', args=[
+            cls.post.author.username, cls.post.id])
+        cls.POST = reverse('post', args=[
+            cls.post.author.username, cls.post.id])
 
     @classmethod
     def tearDownClass(cls):
@@ -55,29 +60,17 @@ class PostFormTests(TestCase):
     def test_create_post(self):
         """Валидная форма создает запись в Post."""
         posts_before = set(Post.objects.all())
-        small_gif = (
-            b'\x47\x49\x46\x38\x39\x61\x02\x00'
-            b'\x01\x00\x80\x00\x00\x00\x00\x00'
-            b'\xFF\xFF\xFF\x21\xF9\x04\x00\x00'
-            b'\x00\x00\x00\x2C\x00\x00\x00\x00'
-            b'\x02\x00\x01\x00\x00\x02\x02\x0C'
-            b'\x0A\x00\x3B'
-        )
-        uploaded_file = SimpleUploadedFile(
-            name='small.gif',
-            content=small_gif,
-            content_type='image/gif'
-        )
         form_data = {
             'text': POST_TEXT,
             'group': self.group.id,
-            'image': uploaded_file
+            'image': self.uploaded_file
         }
         response = self.authorized_client.post(
             NEW_POST,
             data=form_data,
             follow=True
         )
+        self.assertRedirects(response, INDEX)
         posts_after = set(Post.objects.all())
         list_diff = posts_before ^ posts_after
         self.assertEqual(len(list_diff), 1)
@@ -85,8 +78,7 @@ class PostFormTests(TestCase):
         self.assertEqual(new_post.text, POST_TEXT)
         self.assertEqual(new_post.group, self.group)
         self.assertEqual(new_post.author, self.user)
-        self.assertEqual(new_post.image, f'posts/{uploaded_file.name}')
-        self.assertRedirects(response, INDEX)
+        self.assertEqual(new_post.image, f'posts/{self.uploaded_file.name}')
 
     def test_post_edit(self):
         """При редактировании поста изменяется запись в базе данных."""
