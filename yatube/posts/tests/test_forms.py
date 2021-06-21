@@ -24,6 +24,7 @@ class PostFormTests(TestCase):
         cls.user = User.objects.create_user(username='MarieL')
         cls.authorized_client = Client()
         cls.authorized_client.force_login(cls.user)
+        cls.guest_client = Client()
         cls.post = Post.objects.create(
             text=POST_TEXT,
             author=cls.user,

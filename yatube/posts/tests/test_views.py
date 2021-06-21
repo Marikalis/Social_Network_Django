@@ -1,5 +1,6 @@
 import shutil
 
+from django.core.cache import cache
 from django.conf import settings
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
@@ -67,6 +68,13 @@ class PagesTests(TestCase):
             group=cls.group_with_post,
             image=cls.uploaded_file
         )
+        cls.another_user = User.objects.create_user(username=ANOTHER_USERNAME)
+        cls.another_authorized_client = Client()
+        cls.another_authorized_client.force_login(cls.another_user)
+        Follow.objects.create(
+            user=cls.another_user,
+            author=cls.user
+        )
         cls.VIEW_POST = reverse(
             'post',
             kwargs={
@@ -89,24 +97,22 @@ class PagesTests(TestCase):
 
     def test_posts_correct_context(self):
         """Шаблоны сформированы с правильным контекстом."""
-        urls = [
-            INDEX,
-            GROUP_WITH_POSTS,
-            PROFILE,
-            # FOLLOW,
-            # self.VIEW_POST
+        Follow.objects.create(
+            user=self.user,
+            author=self.another_user
+        )
+        urls_posts = [
+            [self.another_authorized_client, INDEX],
+            [self.another_authorized_client, GROUP_WITH_POSTS],
+            [self.another_authorized_client, PROFILE],
+            [self.another_authorized_client, FOLLOW_INDEX],
         ]
-        for url in urls:
+        for client, url in urls_posts:
             with self.subTest(url=url):
-                posts = self.authorized_client.get(url).context['page']
+                posts = client.get(url).context['page']
                 self.assertEqual(len(posts), 1)
                 first_post = posts[0]
-                self.assertEqual(first_post.text, self.post.text)
-                self.assertEqual(first_post.group, self.post.group)
-                self.assertEqual(first_post.author, self.post.author)
-                self.assertEqual(
-                    first_post.image, f'posts/{self.uploaded_file.name}'
-                )
+                self.assertPostsEqual(first_post, self.post)
 
     def test_view_post_correct_context(self):
         """Шаблон view_post сформирован с правильным контекстом."""
@@ -114,14 +120,14 @@ class PagesTests(TestCase):
             self.VIEW_POST,
         ]
         for url in urls:
-            one_post = self.authorized_client.get(url).context['post']
-            self.assertEqual(one_post, self.post)
-            self.assertEqual(one_post.text, self.post.text)
-            self.assertEqual(one_post.group, self.post.group)
-            self.assertEqual(one_post.author, self.post.author)
-            self.assertEqual(
-                one_post.image, f'posts/{self.uploaded_file.name}'
-            )
+            post = self.authorized_client.get(url).context['post']
+            self.assertPostsEqual(post, self.post)
+
+    def assertPostsEqual(self, post1, post2):
+        self.assertEqual(post1.text, post2.text)
+        self.assertEqual(post1.group, post2.group)
+        self.assertEqual(post1.author, post2.author)
+        self.assertEqual(post1.image, post2.image)
 
     def test_group_show_correct_context(self):
         """Шаблон group_posts сформирован с правильным контекстом."""
@@ -208,8 +214,14 @@ class CacheViewsTest(TestCase):
         )
         response_after_post_add = self.client.get(INDEX)
         self.assertEqual(
-            len(first_response.content),
-            len(response_after_post_add.content)
+            first_response.content,
+            response_after_post_add.content
+        )
+        cache.clear()
+        response_after_cache_clean = self.client.get(INDEX)
+        self.assertNotEqual(
+            first_response.content,
+            response_after_cache_clean.content
         )
 
 
@@ -238,22 +250,20 @@ class FollowViewsTest(TestCase):
         )
 
     def test_authorized_client_unfollow(self):
+        Follow.objects.create(
+            user=self.user,
+            author=self.another_user
+        )
         self.authorized_client.get(
             UNFOLLOW
         )
         self.assertFalse(
             Follow.objects.filter(
                 user=self.user,
-                author=self.another_user).exists()
+                author=self.another_user
+            ).exists()
         )
-
-    def test_new_post_is_shown_to_followers(self):
-        self.authorized_client.post(
-            FOLLOW
-        )
-        response = self.authorized_client.get(FOLLOW_INDEX)
-        self.assertIn(self.post, response.context['page'])
 
     def test_new_post_doesnt_shown_to_follower(self):
         response = self.authorized_client.get(FOLLOW_INDEX)
-        self.assertNotIn(self.post, response.context['page'])
+        self.assertTrue(len(response.context['page']) == 0)

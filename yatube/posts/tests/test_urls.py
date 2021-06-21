@@ -168,6 +168,7 @@ class URLTests(TestCase):
             PROFILE: 'profile.html',
             self.VIEW_POST: 'post.html',
             self.POST_EDIT: 'new_post.html',
+            FOLLOW_INDEX: 'follow.html'
         }
         for url, template in templates_url_names.items():
             with self.subTest(url=url):
