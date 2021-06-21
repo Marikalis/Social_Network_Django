@@ -54,6 +54,9 @@ def profile(request, username):
         ).exists()
     else:
         is_following = False
+    # is_following = Follow.objects.filter(
+    #     user=request.user.is_authenticated, author=author
+    # ).exists()
     return render(request, 'profile.html', {
         'author': author,
         'page': page,
