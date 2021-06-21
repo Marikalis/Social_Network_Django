@@ -6,6 +6,7 @@ from posts.models import Post, User
 
 INDEX = reverse('index')
 NEW_POST = reverse('new_post')
+FOLLOW_INDEX = reverse('follow_index')
 
 
 class RoutesTest(TestCase):
@@ -36,13 +37,31 @@ class RoutesTest(TestCase):
                 'username': post.author.username,
                 'post_id': post.id}
         )
+        ADD_COMMENT = reverse(
+            'add_comment',
+            kwargs={
+                'username': post.author.username,
+                'post_id': post.id}
+        )
+        FOLLOW = reverse(
+            'profile_follow',
+            kwargs={'username': user.username}
+        )
+        UNFOLLOW = reverse(
+            'profile_unfollow',
+            kwargs={'username': user.username}
+        )
         routes_and_urls = [
             [INDEX, '/'],
             [NEW_POST, '/new/'],
             [PROFILE, f'/{user.username}/'],
             [GROUP_POSTS, f'/group/{group_slug}/'],
             [VIEW_POST, f'/{user.username}/{post.id}/'],
-            [POST_EDIT, f'/{user.username}/{post.id}/edit/']
+            [POST_EDIT, f'/{user.username}/{post.id}/edit/'],
+            [ADD_COMMENT, f'/{user.username}/{post.id}/comment/'],
+            [FOLLOW, f'/{user.username}/follow/'],
+            [UNFOLLOW, f'/{user.username}/unfollow/'],
+            [FOLLOW_INDEX, '/follow/']
         ]
         for route, url in routes_and_urls:
             self.assertEqual(route, url)
