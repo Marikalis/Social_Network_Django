@@ -41,7 +41,7 @@ class PostModelTest(TestCase):
     def test_post_str(self):
         post = self.post
         expected_object_name = post.text[:15]
-        self.assertEquals(expected_object_name, str(post))
+        self.assertEqual(expected_object_name, str(post))
 
 
 class GroupModelTest(TestCase):
@@ -68,4 +68,4 @@ class GroupModelTest(TestCase):
     def test_object_str(self):
         group = GroupModelTest.group
         expected_object_name = group.title
-        self.assertEquals(expected_object_name, str(group))
+        self.assertEqual(expected_object_name, str(group))
