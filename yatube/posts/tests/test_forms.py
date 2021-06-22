@@ -181,7 +181,6 @@ class PostFormTests(TestCase):
             image_before_edit
         )
 
-
     def test_new_post_page_show_correct_context(self):
         """Шаблон new_post сформирован с правильным контекстом."""
         response = self.authorized_client.get(NEW_POST)
