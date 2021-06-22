@@ -7,7 +7,7 @@ from django.urls import reverse
 from django.test import Client, TestCase
 
 from posts.models import Follow, Group, Post, User
-from posts.settings import PAGE_SIZE, SMALL_GIF
+from posts.settings import PAGE_SIZE
 
 INDEX = reverse('index')
 FOLLOW_INDEX = reverse('follow_index')
@@ -36,6 +36,14 @@ FOLLOW = reverse(
 UNFOLLOW = reverse(
     'profile_unfollow',
     kwargs={'username': ANOTHER_USERNAME}
+)
+SMALL_GIF = (
+    b'\x47\x49\x46\x38\x39\x61\x02\x00'
+    b'\x01\x00\x80\x00\x00\x00\x00\x00'
+    b'\xFF\xFF\xFF\x21\xF9\x04\x00\x00'
+    b'\x00\x00\x00\x2C\x00\x00\x00\x00'
+    b'\x02\x00\x01\x00\x00\x02\x02\x0C'
+    b'\x0A\x00\x3B'
 )
 
 
@@ -71,10 +79,6 @@ class PagesTests(TestCase):
         cls.another_user = User.objects.create_user(username=ANOTHER_USERNAME)
         cls.another_authorized_client = Client()
         cls.another_authorized_client.force_login(cls.another_user)
-        Follow.objects.create(
-            user=cls.another_user,
-            author=cls.user
-        )
         cls.VIEW_POST = reverse(
             'post',
             kwargs={
@@ -98,6 +102,10 @@ class PagesTests(TestCase):
     def test_posts_correct_context(self):
         """Шаблоны сформированы с правильным контекстом."""
         Follow.objects.create(
+            user=self.another_user,
+            author=self.user
+        )
+        Follow.objects.create(
             user=self.user,
             author=self.another_user
         )
@@ -111,8 +119,7 @@ class PagesTests(TestCase):
             with self.subTest(url=url):
                 posts = client.get(url).context['page']
                 self.assertEqual(len(posts), 1)
-                first_post = posts[0]
-                self.assertPostsEqual(first_post, self.post)
+                self.assertPostsEqual(posts[0], self.post)
 
     def test_view_post_correct_context(self):
         """Шаблон view_post сформирован с правильным контекстом."""
@@ -140,8 +147,7 @@ class PagesTests(TestCase):
         self.assertEqual(group.description, self.group_with_post.description)
 
     def test_author_correct_context(self):
-        """Словарь context, для страницы отдельного поста
-        соответствует."""
+        """Шаблон поста и профайла сформированы с правильным контекстом."""
         urls = [
             self.VIEW_POST,
             PROFILE
@@ -266,4 +272,4 @@ class FollowViewsTest(TestCase):
 
     def test_new_post_doesnt_shown_to_follower(self):
         response = self.authorized_client.get(FOLLOW_INDEX)
-        self.assertTrue(len(response.context['page']) == 0)
+        self.assertNotIn(self.post, response.context['page'])

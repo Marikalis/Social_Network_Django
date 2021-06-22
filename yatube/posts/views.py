@@ -47,16 +47,10 @@ def profile(request, username):
     paginator = Paginator(posts, PAGE_SIZE)
     page_number = request.GET.get('page')
     page = paginator.get_page(page_number)
-    if request.user.is_authenticated:
-        is_following = Follow.objects.filter(
-            user=request.user,
-            author=author
-        ).exists()
-    else:
-        is_following = False
-    # is_following = Follow.objects.filter(
-    #     user=request.user.is_authenticated, author=author
-    # ).exists()
+    is_following = request.user.is_authenticated and Follow.objects.filter(
+        user=request.user,
+        author=author
+    ).exists()
     return render(request, 'profile.html', {
         'author': author,
         'page': page,
@@ -72,20 +66,16 @@ def post_view(request, username, post_id):
     )
     comments = post.comments.all()
     form = CommentForm(request.POST or None)
-    following = Follow.objects.filter(
-        author=post.author.id,
-        user=request.user.id
-    )
-    followers = post.author.following.count()
-    follow = post.author.follower.count()
+    is_following = request.user.is_authenticated and Follow.objects.filter(
+        user=request.user,
+        author=post.author
+    ).exists()
     context = {
         'post': post,
         'author': post.author,
         'form': form,
         'comments': comments,
-        'following': following,
-        'followers': followers,
-        'follow': follow
+        'is_following': is_following
     }
     return render(request, 'post.html', context)
 
@@ -103,8 +93,7 @@ def post_edit(request, username, post_id):
     if not form.is_valid():
         return render(request, 'new_post.html', {
             'form': form,
-            'edit': True,
-            'post': post
+            'edit': True
         })
 
     form.save()
@@ -149,13 +138,9 @@ def follow_index(request):
 
 @login_required
 def profile_follow(request, username):
-    author = get_object_or_404(User, username=username)
-    subscription = Follow.objects.filter(
-        user=request.user,
-        author=author
-    ).exists()
-    if author != request.user and subscription is False:
-        Follow.objects.create(
+    if username != request.user.username:
+        author = get_object_or_404(User, username=username)
+        Follow.objects.get_or_create(
             user=request.user,
             author=author
         )

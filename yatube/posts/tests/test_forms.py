@@ -9,12 +9,19 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 
 from posts.models import Comment, Group, Post, User
-from posts.settings import SMALL_GIF
 
 INDEX = reverse('index')
 NEW_POST = reverse('new_post')
 POST_TEXT = 'Тестовый пост'
 COMMENT_TEXT = 'Тестовый комментарий'
+SMALL_GIF = (
+    b'\x47\x49\x46\x38\x39\x61\x02\x00'
+    b'\x01\x00\x80\x00\x00\x00\x00\x00'
+    b'\xFF\xFF\xFF\x21\xF9\x04\x00\x00'
+    b'\x00\x00\x00\x2C\x00\x00\x00\x00'
+    b'\x02\x00\x01\x00\x00\x02\x02\x0C'
+    b'\x0A\x00\x3B'
+)
 
 
 class PostFormTests(TestCase):
@@ -137,7 +144,11 @@ class PostFormTests(TestCase):
         """При редактировании поста гостем
             не изменяется запись в базе данных."""
         text_after_edit = 'Тестовый пост после редактирования'
-        post_before_edit = self.post
+
+        text_before_edit = self.post.text
+        group_before_edit = self.post.group
+        author_before_edit = self.post.author
+        image_before_edit = self.post.image
         another_uploaded_file = SimpleUploadedFile(
             name='another_small.gif',
             content=SMALL_GIF,
@@ -154,13 +165,12 @@ class PostFormTests(TestCase):
             data=form_data,
             follow=True
         )
-        post_after_edit = self.post
-        self.assertEqual(post_after_edit.text, post_before_edit.text)
-        self.assertEqual(post_after_edit.group, post_before_edit.group)
-        self.assertEqual(post_after_edit.author, post_before_edit.author)
+        self.assertEqual(self.post.text, text_before_edit)
+        self.assertEqual(self.post.group, group_before_edit)
+        self.assertEqual(self.post.author, author_before_edit)
         self.assertEqual(
-            post_after_edit.image,
-            post_before_edit.image
+            self.post.image,
+            image_before_edit
         )
 
     def test_new_post_page_show_correct_context(self):
@@ -192,6 +202,8 @@ class PostFormTests(TestCase):
         self.assertEqual(len(list_diff), 1)
         new_comment = list_diff.pop()
         self.assertEqual(new_comment.text, COMMENT_TEXT)
+        self.assertEqual(new_comment.author, self.user)
+        self.assertEqual(new_comment.post, self.post)
 
     def test_add_comment_guest(self):
         """Комментарий не появляется в базе после добавления гостем"""

@@ -18,6 +18,14 @@ GROUP_POSTS = reverse(
     'group_posts',
     kwargs={'slug': GROUP_POST_SLAG}
 )
+FOLLOW = reverse(
+    'profile_follow',
+    kwargs={'username': USERNAME}
+)
+UNFOLLOW = reverse(
+    'profile_unfollow',
+    kwargs={'username': USERNAME}
+)
 
 
 class URLTests(TestCase):
@@ -58,14 +66,6 @@ class URLTests(TestCase):
                 'username': cls.post.author.username,
                 'post_id': cls.post.id}
         )
-        cls.FOLLOW = reverse(
-            'profile_follow',
-            kwargs={'username': cls.user.username}
-        )
-        cls.UNFOLLOW = reverse(
-            'profile_unfollow',
-            kwargs={'username': cls.user.username}
-        )
 
     def test_pages_codes(self):
         """Страницы доступны любому пользователю."""
@@ -76,28 +76,27 @@ class URLTests(TestCase):
             [self.authorized_client, NEW_POST, CODE_SUCCESS],
             [self.authorized_client, self.POST_EDIT, CODE_SUCCESS],
             [self.authorized_client, self.ADD_COMMENT, CODE_REDIRECT],
-            [self.another_authorized_client, self.FOLLOW, CODE_REDIRECT],
-            [self.another_authorized_client, self.UNFOLLOW, CODE_REDIRECT],
+            [self.another_authorized_client, FOLLOW, CODE_REDIRECT],
+            [self.another_authorized_client, UNFOLLOW, CODE_REDIRECT],
             [self.authorized_client, FOLLOW_INDEX, CODE_SUCCESS],
             [self.another_authorized_client, self.POST_EDIT, CODE_REDIRECT],
             [self.guest_client, INDEX, CODE_SUCCESS],
             [self.guest_client, FOLLOW_INDEX, CODE_REDIRECT],
-            [self.guest_client, self.UNFOLLOW, CODE_REDIRECT],
+            [self.guest_client, UNFOLLOW, CODE_REDIRECT],
             [self.guest_client, NEW_POST, CODE_REDIRECT],
             [self.guest_client, self.POST_EDIT, CODE_REDIRECT],
             [self.guest_client, GROUP_POSTS, CODE_SUCCESS],
             [self.guest_client, PROFILE, CODE_SUCCESS],
             [self.guest_client, self.VIEW_POST, CODE_SUCCESS],
             [self.guest_client, self.ADD_COMMENT, CODE_REDIRECT],
-            [self.guest_client, self.FOLLOW, CODE_REDIRECT],
+            [self.guest_client, FOLLOW, CODE_REDIRECT],
             [self.guest_client, FAKE_PAGE, CODE_NOT_FOUND]
         ]
         for client, url, code in url_names:
-            with self.subTest(url=url):
-                response = client.get(url)
+            with self.subTest(client=client, url=url, code=code):
                 self.assertEqual(
                     code,
-                    response.status_code
+                    client.get(url).status_code
                 )
 
     def test_redirect(self):
@@ -131,31 +130,30 @@ class URLTests(TestCase):
             ],
             [
                 self.guest_client,
-                self.FOLLOW,
-                f'{AUTH}?next={self.FOLLOW}'
+                FOLLOW,
+                f'{AUTH}?next={FOLLOW}'
             ],
             [
                 self.another_authorized_client,
-                self.FOLLOW,
+                FOLLOW,
                 PROFILE
             ],
             [
                 self.guest_client,
-                self.UNFOLLOW,
-                f'{AUTH}?next={self.UNFOLLOW}'
+                UNFOLLOW,
+                f'{AUTH}?next={UNFOLLOW}'
             ],
             [
                 self.another_authorized_client,
-                self.UNFOLLOW,
+                UNFOLLOW,
                 PROFILE
             ],
 
         ]
         for client, url, url_redirect in templates_url_names:
             with self.subTest(url=url):
-                response = client.get(url)
                 self.assertRedirects(
-                    response,
+                    client.get(url),
                     url_redirect
                 )
 
@@ -168,7 +166,7 @@ class URLTests(TestCase):
             PROFILE: 'profile.html',
             self.VIEW_POST: 'post.html',
             self.POST_EDIT: 'new_post.html',
-            FOLLOW_INDEX: 'follow.html'
+            FOLLOW_INDEX: 'follow.html',
         }
         for url, template in templates_url_names.items():
             with self.subTest(url=url):
