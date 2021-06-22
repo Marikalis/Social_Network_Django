@@ -167,6 +167,7 @@ class URLTests(TestCase):
             self.VIEW_POST: 'post.html',
             self.POST_EDIT: 'new_post.html',
             FOLLOW_INDEX: 'follow.html',
+            FAKE_PAGE: 'misc/404.html'
         }
         for url, template in templates_url_names.items():
             with self.subTest(url=url):
