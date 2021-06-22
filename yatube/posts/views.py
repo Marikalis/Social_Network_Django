@@ -92,8 +92,8 @@ def post_edit(request, username, post_id):
     )
     if not form.is_valid():
         return render(request, 'new_post.html', {
-            'form': form,
-            'edit': True
+            'post': post,
+            'form': form
         })
 
     form.save()
