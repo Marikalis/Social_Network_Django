@@ -123,6 +123,7 @@ class PostFormTests(TestCase):
             data=form_data,
             follow=True
         )
+        self.assertRedirects(response, self.POST)
         post_after_edit = response.context['post']
         self.assertEqual(post_after_edit.text, text_after_edit)
         self.assertEqual(post_after_edit.group, self.group_other)
