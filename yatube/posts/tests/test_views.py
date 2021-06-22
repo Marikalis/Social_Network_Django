@@ -105,10 +105,6 @@ class PagesTests(TestCase):
             user=self.another_user,
             author=self.user
         )
-        Follow.objects.create(
-            user=self.user,
-            author=self.another_user
-        )
         urls_posts = [
             [self.another_authorized_client, INDEX],
             [self.another_authorized_client, GROUP_WITH_POSTS],

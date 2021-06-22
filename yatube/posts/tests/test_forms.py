@@ -50,6 +50,11 @@ class PostFormTests(TestCase):
         cls.post = Post.objects.create(
             text=POST_TEXT,
             author=cls.user,
+            image=SimpleUploadedFile(
+                name='another_small_default.gif',
+                content=SMALL_GIF,
+                content_type='image/gif'
+            )
         )
         cls.uploaded_file = SimpleUploadedFile(
             name='small.gif',
@@ -165,13 +170,17 @@ class PostFormTests(TestCase):
             data=form_data,
             follow=True
         )
-        self.assertEqual(self.post.text, text_before_edit)
-        self.assertEqual(self.post.group, group_before_edit)
-        self.assertEqual(self.post.author, author_before_edit)
+        post_after_edit = Post.objects.filter(
+            id=self.post.id
+        )[0]
+        self.assertEqual(post_after_edit.text, text_before_edit)
+        self.assertEqual(post_after_edit.group, group_before_edit)
+        self.assertEqual(post_after_edit.author, author_before_edit)
         self.assertEqual(
-            self.post.image,
+            post_after_edit.image,
             image_before_edit
         )
+
 
     def test_new_post_page_show_correct_context(self):
         """Шаблон new_post сформирован с правильным контекстом."""
