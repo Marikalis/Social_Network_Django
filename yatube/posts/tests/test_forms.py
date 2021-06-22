@@ -178,7 +178,7 @@ class PostFormTests(TestCase):
     def test_add_comment(self):
         """Комментарий появляется в базе после добавления
             авторизованным пользователем"""
-        comments_before = set(Comment.objects.filter(post=self.post))
+        comments_before = set(self.post.comments.all())
         form_data = {
             'text': COMMENT_TEXT
         }
@@ -195,7 +195,7 @@ class PostFormTests(TestCase):
 
     def test_add_comment_guest(self):
         """Комментарий не появляется в базе после добавления гостем"""
-        comments_before = set(Comment.objects.filter(post=self.post))
+        comments_before = set(self.post.comments.all())
         form_data = {
             'text': COMMENT_TEXT
         }
