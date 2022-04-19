@@ -27,8 +27,7 @@ DEBUG = False
 
 ALLOWED_HOSTS = [
     'localhost',
-    '62.84.120.222',
-    'marikalis.ddns.net',
+    '51.250.102.42',
     '127.0.0.1',
     '[::1]',
     'testserver',
